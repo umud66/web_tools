@@ -1,0 +1,22 @@
+{
+  "site": {
+    "title": "工具合集",
+    "subtitle": "Browser Tools Collection",
+    "home": "./index.html"
+  },
+  "categories": [
+    {
+      "id": "excel",
+      "title": "Excel 工具",
+      "tools": [
+        {
+          "id": "excel-merge-tool",
+          "title": "excel合并工具",
+          "description": "批量读取多个 Excel 文件，按同名工作簿自动合并，并支持为每个工作簿设置公共标题行数。",
+          "href": "./excel-merge-tool.html",
+          "tag": "EXCEL"
+        }
+      ]
+    }
+  ]
+}
