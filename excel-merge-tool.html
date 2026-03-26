@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Excel 工作簿合并工具</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --panel: rgba(255, 251, 245, 0.92);
+      --line: #d7c7ad;
+      --text: #2d2418;
+      --muted: #6e614f;
+      --accent: #b85c38;
+      --accent-dark: #8f4328;
+      --ok: #2c7a56;
+      --shadow: 0 18px 60px rgba(90, 63, 36, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(184, 92, 56, 0.14), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(94, 138, 114, 0.16), transparent 28%),
+        linear-gradient(135deg, #f7f2e9 0%, #efe2ca 100%);
+      padding: 32px 16px;
+    }
+
+    .shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      background: rgba(255, 251, 245, 0.82);
+      border: 1px solid rgba(215, 199, 173, 0.8);
+      border-radius: 20px;
+      box-shadow: 0 12px 36px rgba(90, 63, 36, 0.1);
+      backdrop-filter: blur(8px);
+    }
+
+    .topbar-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #bf6d49, #8f4328);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    }
+
+    .topbar-title h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .topbar-title span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .home-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: var(--text);
+      background: #ece2d3;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+
+    .home-link:hover {
+      transform: translateY(-1px);
+      background: #e6d7c3;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(215, 199, 173, 0.8);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero {
+      padding: 28px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 820px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+    }
+
+    .hint {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .dropzone {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed var(--line);
+      border-radius: 20px;
+      padding: 28px;
+      min-height: 160px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.55);
+      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+      overflow: hidden;
+    }
+
+    .dropzone.dragging {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      background: rgba(255, 247, 240, 0.95);
+    }
+
+    .dropzone input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .dropzone strong {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .dropzone span {
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+      align-items: center;
+    }
+
+    button,
+    .button-like {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease, background 0.2s ease;
+    }
+
+    button:hover,
+    .button-like:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff7f2;
+    }
+
+    .primary:hover {
+      background: var(--accent-dark);
+    }
+
+    .secondary {
+      background: #ece2d3;
+      color: var(--text);
+    }
+
+    .filename {
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(215, 199, 173, 0.7);
+      vertical-align: middle;
+    }
+
+    th {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
+      background: rgba(246, 238, 225, 0.9);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text);
+    }
+
+    .stats {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid rgba(215, 199, 173, 0.7);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    .card strong {
+      display: block;
+      font-size: 26px;
+      margin-bottom: 4px;
+    }
+
+    .card span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .status.success {
+      color: var(--ok);
+    }
+
+    .status.error {
+      color: #a23d32;
+    }
+
+    .list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 18px 0 4px;
+    }
+
+    @media (max-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <div class="topbar-title">
+        <div class="topbar-mark"></div>
+        <div>
+          <h2>excel合并工具</h2>
+          <span>Excel Merge Tool</span>
+        </div>
+      </div>
+      <a class="home-link" href="./index.html">返回首页</a>
+    </section>
+
+    <section class="hero">
+      <h1>Excel 同名工作簿批量合并</h1>
+      <p>
+        直接在浏览器中处理，不上传服务器。选择多个 Excel 文件后，系统会按工作簿名称自动归类合并。
+        你可以为每个工作簿设置“前 N 行是公共标题”，合并时只保留第一份标题，其余文件仅追加标题之后的数据。
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>1. 选择文件</h2>
+      <p class="hint">支持拖拽或点击选择多个 `.xlsx` / `.xls` 文件。所有文件应保持相同结构。</p>
+      <label class="dropzone" id="dropzone">
+        <input id="fileInput" type="file" accept=".xlsx,.xls" multiple />
+        <strong>拖拽 Excel 文件到这里</strong>
+        <span>或点击选择多个文件</span>
+      </label>
+      <div class="toolbar">
+        <button id="analyzeBtn" class="primary" disabled>读取并分析工作簿</button>
+        <button id="clearBtn" class="secondary" type="button">清空</button>
+        <div class="filename" id="fileSummary">尚未选择文件</div>
+      </div>
+      <div class="status" id="analyzeStatus"></div>
+    </section>
+
+    <section class="grid">
+      <section class="panel">
+        <h2>2. 设置每个工作簿的标题行数</h2>
+        <p class="hint">例如工作簿 A 填 `2`，表示前两行是公共标题，保留一次；从第 3 行开始才参与跨文件拼接。</p>
+        <div id="sheetConfigWrap">
+          <div class="empty">读取文件后会在这里列出所有检测到的工作簿。</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>3. 合并并导出</h2>
+        <div class="stats">
+          <div class="card">
+            <strong id="fileCount">0</strong>
+            <span>已选择文件数</span>
+          </div>
+          <div class="card">
+            <strong id="sheetCount">0</strong>
+            <span>检测到的工作簿数</span>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="outputName" type="text" value="merged.xlsx" />
+          <button id="mergeBtn" class="primary" disabled>生成合并文件</button>
+        </div>
+        <div class="status" id="mergeStatus"></div>
+      </section>
+    </section>
+
+    <section class="panel">
+      <h2>规则说明</h2>
+      <ul class="list">
+        <li>同名工作簿会被合并到结果文件中的同一个工作簿里。</li>
+        <li>标题行只保留第一份，后续文件会跳过对应的标题行数。</li>
+        <li>如果某个文件缺少某个工作簿，该文件会自动跳过该工作簿。</li>
+        <li>所有处理都在当前浏览器中完成，刷新页面前可重复调整参数重新导出。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const dropzone = document.getElementById("dropzone");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const mergeBtn = document.getElementById("mergeBtn");
+    const fileSummary = document.getElementById("fileSummary");
+    const analyzeStatus = document.getElementById("analyzeStatus");
+    const mergeStatus = document.getElementById("mergeStatus");
+    const fileCount = document.getElementById("fileCount");
+    const sheetCount = document.getElementById("sheetCount");
+    const sheetConfigWrap = document.getElementById("sheetConfigWrap");
+    const outputName = document.getElementById("outputName");
+
+    let selectedFiles = [];
+    let workbookCache = [];
+    let sheetConfigs = {};
+
+    function setStatus(element, text, type = "") {
+      element.textContent = text;
+      element.className = "status" + (type ? " " + type : "");
+    }
+
+    function updateFileSummary() {
+      fileCount.textContent = String(selectedFiles.length);
+      if (!selectedFiles.length) {
+        fileSummary.textContent = "尚未选择文件";
+        analyzeBtn.disabled = true;
+        return;
+      }
+
+      const names = selectedFiles.slice(0, 3).map((file) => file.name);
+      const extra = selectedFiles.length > 3 ? ` 等 ${selectedFiles.length} 个文件` : "";
+      fileSummary.textContent = names.join("、") + extra;
+      analyzeBtn.disabled = false;
+    }
+
+    function resetAnalysis() {
+      workbookCache = [];
+      sheetConfigs = {};
+      sheetCount.textContent = "0";
+      mergeBtn.disabled = true;
+      sheetConfigWrap.innerHTML = '<div class="empty">读取文件后会在这里列出所有检测到的工作簿。</div>';
+      setStatus(analyzeStatus, "");
+      setStatus(mergeStatus, "");
+    }
+
+    function handleFiles(files) {
+      selectedFiles = Array.from(files || []).filter((file) => /\.(xlsx|xls)$/i.test(file.name));
+      resetAnalysis();
+      updateFileSummary();
+      if (files.length && !selectedFiles.length) {
+        setStatus(analyzeStatus, "没有检测到可用的 Excel 文件，请重新选择。", "error");
+      }
+    }
+
+    async function readFileAsArrayBuffer(file) {
+      return await file.arrayBuffer();
+    }
+
+    function buildSheetConfigTable(sheetNames) {
+      if (!sheetNames.length) {
+        sheetConfigWrap.innerHTML = '<div class="empty">未检测到任何工作簿。</div>';
+        return;
+      }
+
+      const rows = sheetNames.map((sheetName) => {
+        const titleRows = Number.isInteger(sheetConfigs[sheetName]) ? sheetConfigs[sheetName] : 1;
+        return `
+          <tr>
+            <td>${escapeHtml(sheetName)}</td>
+            <td><input type="number" min="0" step="1" value="${titleRows}" data-sheet-name="${escapeHtml(sheetName)}" class="title-row-input" /></td>
+          </tr>
+        `;
+      }).join("");
+
+      sheetConfigWrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>工作簿名</th>
+              <th>前 N 行为公共标题</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+
+      document.querySelectorAll(".title-row-input").forEach((input) => {
+        input.addEventListener("input", (event) => {
+          const sheetName = event.target.dataset.sheetName;
+          const value = Math.max(0, Number.parseInt(event.target.value || "0", 10) || 0);
+          event.target.value = String(value);
+          sheetConfigs[sheetName] = value;
+        });
+      });
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    async function analyzeFiles() {
+      if (!selectedFiles.length) {
+        setStatus(analyzeStatus, "请先选择 Excel 文件。", "error");
+        return;
+      }
+
+      analyzeBtn.disabled = true;
+      mergeBtn.disabled = true;
+      setStatus(analyzeStatus, "正在读取文件，请稍候...");
+
+      try {
+        const cache = [];
+        const sheetNameSet = new Set();
+
+        for (const file of selectedFiles) {
+          const buffer = await readFileAsArrayBuffer(file);
+          const workbook = XLSX.read(buffer, { type: "array" });
+          cache.push({ fileName: file.name, workbook });
+          workbook.SheetNames.forEach((name) => sheetNameSet.add(name));
+        }
+
+        workbookCache = cache;
+        const sheetNames = Array.from(sheetNameSet);
+        sheetNames.forEach((name) => {
+          if (!Number.isInteger(sheetConfigs[name])) {
+            sheetConfigs[name] = 1;
+          }
+        });
+
+        sheetCount.textContent = String(sheetNames.length);
+        buildSheetConfigTable(sheetNames);
+        mergeBtn.disabled = false;
+        setStatus(analyzeStatus, `已完成分析：共读取 ${selectedFiles.length} 个文件，检测到 ${sheetNames.length} 个工作簿。`, "success");
+      } catch (error) {
+        console.error(error);
+        setStatus(analyzeStatus, "读取文件失败，请确认文件未损坏且格式正确。", "error");
+      } finally {
+        analyzeBtn.disabled = false;
+      }
+    }
+
+    function getSheetMatrix(sheet) {
+      const ref = sheet["!ref"];
+      if (!ref) {
+        return [];
+      }
+
+      const range = XLSX.utils.decode_range(ref);
+      const rows = [];
+
+      for (let rowIndex = range.s.r; rowIndex <= range.e.r; rowIndex += 1) {
+        const row = [];
+        for (let colIndex = range.s.c; colIndex <= range.e.c; colIndex += 1) {
+          const address = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+          const cell = sheet[address];
+          row.push(cell ? (cell.w ?? cell.v ?? "") : "");
+        }
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function normalizeRows(rows) {
+      let maxLength = 0;
+      for (const row of rows) {
+        if (row.length > maxLength) {
+          maxLength = row.length;
+        }
+      }
+
+      return rows.map((row) => {
+        const normalized = row.slice();
+        while (normalized.length < maxLength) {
+          normalized.push("");
+        }
+        return normalized;
+      });
+    }
+
+    function getTitleMerges(sheet, titleRows) {
+      const merges = Array.isArray(sheet["!merges"]) ? sheet["!merges"] : [];
+      if (titleRows <= 0) {
+        return [];
+      }
+
+      return merges
+        .filter((merge) => merge.s.r < titleRows && merge.e.r < titleRows)
+        .map((merge) => ({
+          s: { r: merge.s.r, c: merge.s.c },
+          e: { r: merge.e.r, c: merge.e.c }
+        }));
+    }
+
+    function mergeWorkbooks() {
+      if (!workbookCache.length) {
+        setStatus(mergeStatus, "请先读取并分析文件。", "error");
+        return;
+      }
+
+      mergeBtn.disabled = true;
+      setStatus(mergeStatus, "正在合并并生成文件...");
+
+      try {
+        const outputWorkbook = XLSX.utils.book_new();
+        const allSheetNames = Array.from(
+          new Set(workbookCache.flatMap((item) => item.workbook.SheetNames))
+        );
+
+        for (const sheetName of allSheetNames) {
+          const mergedRows = [];
+          const titleRows = Math.max(0, Number.parseInt(sheetConfigs[sheetName] || 0, 10) || 0);
+          let titleInserted = false;
+          let titleMerges = [];
+
+          for (const { workbook } of workbookCache) {
+            const sheet = workbook.Sheets[sheetName];
+            if (!sheet) {
+              continue;
+            }
+
+            const rows = getSheetMatrix(sheet);
+
+            if (!rows.length) {
+              continue;
+            }
+
+            if (titleRows > 0) {
+              if (!titleInserted) {
+                mergedRows.push(...rows.slice(0, titleRows));
+                titleMerges = getTitleMerges(sheet, titleRows);
+                titleInserted = true;
+              }
+              mergedRows.push(...rows.slice(titleRows));
+            } else {
+              mergedRows.push(...rows);
+            }
+          }
+
+          const normalizedRows = normalizeRows(mergedRows);
+          const worksheet = XLSX.utils.aoa_to_sheet(normalizedRows);
+          if (titleMerges.length) {
+            worksheet["!merges"] = titleMerges;
+          }
+          XLSX.utils.book_append_sheet(outputWorkbook, worksheet, sheetName);
+        }
+
+        let fileName = outputName.value.trim() || "merged.xlsx";
+        if (!/\.xlsx$/i.test(fileName)) {
+          fileName += ".xlsx";
+        }
+
+        XLSX.writeFile(outputWorkbook, fileName);
+        setStatus(mergeStatus, "合并完成，文件已开始下载。", "success");
+      } catch (error) {
+        console.error(error);
+        setStatus(mergeStatus, "合并失败，请检查文件内容是否一致。", "error");
+      } finally {
+        mergeBtn.disabled = false;
+      }
+    }
+
+    fileInput.addEventListener("change", (event) => {
+      handleFiles(event.target.files);
+    });
+
+    ["dragenter", "dragover"].forEach((eventName) => {
+      dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropzone.classList.add("dragging");
+      });
+    });
+
+    ["dragleave", "drop"].forEach((eventName) => {
+      dropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropzone.classList.remove("dragging");
+      });
+    });
+
+    dropzone.addEventListener("drop", (event) => {
+      if (event.dataTransfer?.files?.length) {
+        fileInput.files = event.dataTransfer.files;
+        handleFiles(event.dataTransfer.files);
+      }
+    });
+
+    analyzeBtn.addEventListener("click", analyzeFiles);
+    mergeBtn.addEventListener("click", mergeWorkbooks);
+    clearBtn.addEventListener("click", () => {
+      selectedFiles = [];
+      fileInput.value = "";
+      resetAnalysis();
+      updateFileSummary();
+    });
+
+    updateFileSummary();
+  </script>
+</body>
+</html>

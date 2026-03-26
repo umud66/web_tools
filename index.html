@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工具合集</title>
+  <style>
+    :root {
+      --bg1: #f7f1e7;
+      --bg2: #ead8bc;
+      --panel: rgba(255, 251, 244, 0.88);
+      --text: #2e2418;
+      --muted: #6e614f;
+      --line: rgba(189, 163, 129, 0.42);
+      --accent: #b85c38;
+      --accent-dark: #944828;
+      --shadow: 0 20px 50px rgba(89, 63, 37, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(184, 92, 56, 0.15), transparent 28%),
+        radial-gradient(circle at right bottom, rgba(84, 119, 99, 0.16), transparent 25%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      padding: 22px 16px;
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      background: rgba(255, 251, 244, 0.7);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 28px rgba(89, 63, 37, 0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #bf6d49, #8d472d);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .brand h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .brand span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .hero {
+      padding: 22px;
+      border-radius: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 4vw, 34px);
+      line-height: 1.12;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 660px;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      padding: 18px;
+      border-radius: 20px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 34px rgba(89, 63, 37, 0.1);
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(184, 92, 56, 0.45);
+      background: rgba(255, 249, 241, 0.96);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--accent-dark);
+      background: rgba(184, 92, 56, 0.1);
+      margin-bottom: 10px;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .link {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="topbar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h2>工具合集</h2>
+          <span>Browser Tools Collection</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="hero">
+      <h1>工具合集</h1>
+      <p>这里集中放一些浏览器里直接可用的小工具。当前已接入 Excel 合并工具，后面可以继续往这里增加更多入口。</p>
+    </section>
+
+    <section class="grid">
+      <a class="card" href="./excel-merge-tool.html">
+        <span class="tag">EXCEL</span>
+        <h2>excel合并工具</h2>
+        <p>批量读取多个 Excel 文件，按同名工作簿自动合并，并支持为每个工作簿设置公共标题行数。</p>
+        <div class="link">进入工具</div>
+      </a>
+    </section>
+  </main>
+</body>
+</html>
